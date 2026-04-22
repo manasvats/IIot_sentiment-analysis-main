@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Login to SentiVoice AI - Premium Sentiment Intelligence." />
+  <meta name="theme-color" content="#050505" />
+  <title>Login | SentiVoice AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body class="login-page">
+  <div class="login-container">
+    <div class="login-card glass-card">
+      <div class="login-header">
+        <div class="logo-icon">🎙️</div>
+        <h1 id="formTitle">Welcome Back</h1>
+        <p id="formSubtitle">Access your sentiment intelligence dashboard</p>
+      </div>
+
+      <form id="authForm" class="login-form">
+        <div class="input-group">
+          <label for="username">Username</label>
+          <input type="text" id="username" name="username" placeholder="Choose a username" required />
+          <span class="focus-border"></span>
+        </div>
+
+        <div class="input-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" placeholder="Enter password" required />
+          <span class="focus-border"></span>
+        </div>
+
+        <div class="input-group hidden" id="confirmPasswordGroup">
+          <label for="confirmPassword">Confirm Password</label>
+          <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirm your password" />
+          <span class="focus-border"></span>
+        </div>
+
+        {% if error %}
+        <div id="flaskError" class="error-msg">{{ error }}</div>
+        {% endif %}
+        <div id="jsError" class="error-msg hidden"></div>
+        <div id="jsSuccess" class="success-msg hidden"></div>
+
+        <button type="submit" id="authButton" class="primary-button">
+          <span>Login to Dashboard</span>
+          <div class="btn-glow"></div>
+        </button>
+      </form>
+
+      <div class="login-footer">
+        <p id="toggleText">Don't have an account? <a href="#" id="toggleAuth">Sign up</a></p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const authForm = document.getElementById('authForm');
+    const jsError = document.getElementById('jsError');
+    const jsSuccess = document.getElementById('jsSuccess');
+    const authButton = document.getElementById('authButton');
+    const toggleAuth = document.getElementById('toggleAuth');
+    const toggleTextNode = document.querySelector('#toggleText').childNodes[0];
+    const formTitle = document.getElementById('formTitle');
+    const formSubtitle = document.getElementById('formSubtitle');
+    const confirmPasswordGroup = document.getElementById('confirmPasswordGroup');
+    const confirmPasswordInput = document.getElementById('confirmPassword');
+    const flaskError = document.getElementById('flaskError');
+
+    let isLogin = true;
+
+    toggleAuth.addEventListener('click', (e) => {
+      e.preventDefault();
+      isLogin = !isLogin;
+      
+      // Clear errors
+      jsError.classList.add('hidden');
+      jsSuccess.classList.add('hidden');
+      if (flaskError) flaskError.classList.add('hidden');
+
+      if (isLogin) {
+        formTitle.textContent = 'Welcome Back';
+        formSubtitle.textContent = 'Access your sentiment intelligence dashboard';
+        authButton.querySelector('span').textContent = 'Login to Dashboard';
+        toggleAuth.textContent = 'Sign up';
+        toggleTextNode.textContent = "Don't have an account? ";
+        confirmPasswordGroup.classList.add('hidden');
+        confirmPasswordInput.required = false;
+      } else {
+        formTitle.textContent = 'Create Account';
+        formSubtitle.textContent = 'Join the future of sentiment intelligence';
+        authButton.querySelector('span').textContent = 'Create Account';
+        toggleAuth.textContent = 'Login';
+        toggleTextNode.textContent = "Already have an account? ";
+        confirmPasswordGroup.classList.remove('hidden');
+        confirmPasswordInput.required = true;
+      }
+    });
+
+    authForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      const confirmPassword = confirmPasswordInput.value;
+      
+      if (!isLogin && password !== confirmPassword) {
+        jsError.textContent = 'Passwords do not match';
+        jsError.classList.remove('hidden');
+        return;
+      }
+
+      authButton.disabled = true;
+      const originalText = authButton.querySelector('span').textContent;
+      authButton.querySelector('span').textContent = isLogin ? 'Authenticating...' : 'Creating Account...';
+      jsError.classList.add('hidden');
+      jsSuccess.classList.add('hidden');
+
+      const endpoint = isLogin ? '/login' : '/register';
+
+      try {
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+          if (isLogin) {
+            // Add a cool exit animation before redirecting
+            document.querySelector('.login-card').style.transform = 'scale(0.9) translateY(-20px)';
+            document.querySelector('.login-card').style.opacity = '0';
+            setTimeout(() => {
+              window.location.href = data.redirect;
+            }, 400);
+          } else {
+            jsSuccess.textContent = data.message;
+            jsSuccess.classList.remove('hidden');
+            authButton.disabled = false;
+            authButton.querySelector('span').textContent = originalText;
+            // Switch to login after successful registration
+            setTimeout(() => {
+              if (!isLogin) toggleAuth.click();
+            }, 1500);
+          }
+        } else {
+          jsError.textContent = data.message || (isLogin ? 'Login failed' : 'Registration failed');
+          jsError.classList.remove('hidden');
+          authButton.disabled = false;
+          authButton.querySelector('span').textContent = originalText;
+          
+          // Shake animation on error
+          document.querySelector('.login-card').animate([
+            { transform: 'translateX(0)' },
+            { transform: 'translateX(-10px)' },
+            { transform: 'translateX(10px)' },
+            { transform: 'translateX(-10px)' },
+            { transform: 'translateX(0)' }
+          ], { duration: 400 });
+        }
+      } catch (err) {
+        jsError.textContent = 'Connection error. Please try again.';
+        jsError.classList.remove('hidden');
+        authButton.disabled = false;
+        authButton.querySelector('span').textContent = originalText;
+      }
+    });
+  </script>
+</body>
+</html>
+
+

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="SentiVoice AI - Premium Sentiment Analysis for English and Hinglish voice and text." />
+  <meta name="theme-color" content="#050505" />
+  <title>SentiVoice AI | Premium Sentiment Intelligence</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <div class="page-shell">
+    <div class="backdrop"></div>
+
+    <header class="hero-panel glass-card">
+      <div class="hero-copy">
+        <span class="tag">EN + Hinglish Ready</span>
+        <h1>SentiVoice <span>AI</span></h1>
+        <p class="subtitle">Dual-Model Sentiment Intelligence</p>
+      </div>
+      <div class="hero-actions">
+        <a href="/logout" class="secondary-button logout-btn">Logout</a>
+        <div class="hero-stats">
+          <div class="stat">NB: <strong>87%</strong></div>
+          <div class="stat">LSTM: <strong>91%</strong></div>
+          <div class="stat">Combined: <strong>94%</strong></div>
+        </div>
+      </div>
+    </header>
+
+    <main class="layout-grid">
+      <section class="panel glass-card voice-panel">
+        <div class="section-header">
+          <div>
+            <h2>Voice Input</h2>
+            <p>Speak in English or Roman Hindi and watch the live waveform.</p>
+          </div>
+          <div class="switch-row">
+            <label class="switch">
+              <input id="languageToggle" type="checkbox" />
+              <span class="slider"></span>
+            </label>
+            <span id="languageMode">EN</span>
+          </div>
+        </div>
+
+        <div class="record-panel">
+          <button id="micButton" class="mic-button" aria-label="Start recording">
+            <div class="mic-ring"></div>
+            <span class="mic-icon">🎙</span>
+          </button>
+          <div class="record-status">
+            <strong id="recordStatus">Ready to record</strong>
+            <span id="recordHint">Tap mic to begin</span>
+          </div>
+        </div>
+
+        <div class="waveform" id="waveform">
+          <span class="bar"></span>
+          <span class="bar"></span>
+          <span class="bar"></span>
+          <span class="bar"></span>
+          <span class="bar"></span>
+        </div>
+
+        <div class="text-panel glass-card">
+          <pre id="highlightLayer" class="highlight-layer"></pre>
+          <textarea id="inputText" placeholder="Your voice will appear here..." maxlength="800"></textarea>
+        </div>
+
+        <div class="action-row">
+          <button id="analyzeButton" class="primary-button">Analyze Sentiment</button>
+          <button id="clearButton" class="secondary-button">Clear</button>
+        </div>
+        <div class="meta-row">
+          <span id="charCount">0 / 800</span>
+          <span class="mode-chip">Mode: <strong>Browser + Flask</strong></span>
+        </div>
+      </section>
+
+      <section class="panel glass-card results-panel">
+        <div class="section-header">
+          <div>
+            <h2>Sentiment Results</h2>
+            <p>Backend-backed analysis from Naive Bayes and simulated LSTM.</p>
+          </div>
+          <span id="confidenceIndicator" class="confidence-chip">Confidence: N/A</span>
+        </div>
+
+        <div id="loadingState" class="skeleton-block">
+          <div class="skeleton-line"></div>
+          <div class="skeleton-line"></div>
+          <div class="skeleton-box"></div>
+        </div>
+
+        <div id="resultsArea" class="results-area hidden">
+          <div class="card primary-card">
+            <div class="emoji-circle" id="primaryEmoji">😊</div>
+            <div class="primary-copy">
+              <span id="primaryLabel">NEUTRAL</span>
+              <p id="primaryText">Speak or type text to get a sentiment reading.</p>
+            </div>
+            <div class="ring-card">
+              <svg viewBox="0 0 120 120">
+                <circle class="ring-bg" cx="60" cy="60" r="52"></circle>
+                <circle class="ring-fill" id="ringFill" cx="60" cy="60" r="52"></circle>
+              </svg>
+              <div class="ring-text"><span id="confidenceValue">0%</span></div>
+            </div>
+          </div>
+
+          <div class="card breakdown-card">
+            <h3>Emotion Breakdown</h3>
+            <div id="breakdownBars" class="breakdown-bars"></div>
+          </div>
+
+          <div class="card compare-card">
+            <div class="compare-item">
+              <span>Naive Bayes</span>
+              <strong id="nbValue">0%</strong>
+            </div>
+            <div class="compare-item">
+              <span>LSTM</span>
+              <strong id="lstmValue">0%</strong>
+            </div>
+            <div class="compare-item">
+              <span>Combined</span>
+              <strong id="combinedValue">0%</strong>
+            </div>
+          </div>
+
+          <div class="card action-card">
+            <button id="copyButton" class="secondary-button">Copy Result</button>
+            <button id="shareButton" class="secondary-button">Share Image</button>
+          </div>
+        </div>
+      </section>
+
+      <aside class="panel glass-card history-panel">
+        <div class="section-header">
+          <div>
+            <h2>History</h2>
+            <p>Last 5 analyses stored locally in your browser.</p>
+          </div>
+          <span class="badge">Saved Locally</span>
+        </div>
+        <div id="historyList" class="history-list"></div>
+      </aside>
+    </main>
+
+    <footer class="footer-panel glass-card">
+      <p>Powered by Naive Bayes + LSTM | Built with ❤️</p>
+    </footer>
+  </div>
+
+  <canvas id="shareCanvas" width="1000" height="700" hidden></canvas>
+  <script src="/static/script.js"></script>
+</body>
+</html>
