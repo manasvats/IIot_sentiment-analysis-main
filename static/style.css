@@ -26,6 +26,7 @@ html, body {
     linear-gradient(180deg, #050505 0%, #0a0a0a 100%);
   color: var(--text);
   overflow-x: hidden;
+  scroll-behavior: smooth;
 }
 
 body::before {
@@ -40,7 +41,7 @@ body::before {
   position: relative;
   max-width: 1300px;
   margin: 0 auto;
-  padding: 40px 24px;
+  padding: 20px 24px;
 }
 
 .glass-card {
@@ -56,9 +57,9 @@ body::before {
   display: flex;
   justify-content: space-between;
   gap: 24px;
-  padding: 40px;
+  padding: 24px 40px;
   align-items: center;
-  margin-bottom: 32px;
+  margin-bottom: 24px;
   background: linear-gradient(135deg, rgba(255, 51, 51, 0.05) 0%, transparent 100%);
   flex-wrap: wrap;
 }
@@ -138,7 +139,41 @@ body::before {
   color: var(--accent);
 }
 
-.layout-grid {
+.content-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.input-section {
+  padding: 40px;
+}
+
+.input-grid {
+  display: flex;
+  gap: 48px;
+  align-items: flex-start;
+}
+
+.mic-column {
+  flex: 0 0 300px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: var(--radius);
+  padding: 20px;
+  border: 1px solid var(--border);
+}
+
+.text-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.lower-layout {
   display: grid;
   grid-template-columns: 1.3fr 0.9fr;
   gap: 32px;
@@ -167,51 +202,76 @@ body::before {
   color: var(--muted);
 }
 
-.switch-row {
+.history-actions {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-.switch {
-  position: relative;
-  width: 56px;
-  height: 32px;
-}
-
-.switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-.slider {
-  position: absolute;
-  inset: 0;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.1);
-  transition: all 0.3s ease;
+.text-button {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 600;
   cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
-.slider::before {
-  content: '';
-  position: absolute;
-  top: 4px;
-  left: 4px;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: #fff;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+.text-button:hover {
+  color: var(--accent);
+  background: rgba(255, 51, 51, 0.1);
 }
 
-.switch input:checked + .slider {
+.language-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dropdown-wrapper {
+  position: relative;
+}
+
+.lang-select {
+  background: var(--surface-strong);
+  border: 1px solid var(--border);
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  outline: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 160px;
+}
+
+.lang-select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 15px rgba(255, 51, 51, 0.1);
+}
+
+.action-btn-small {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.action-btn-small:hover {
   background: var(--accent);
-}
-
-.switch input:checked + .slider::before {
-  transform: translateX(24px);
+  border-color: var(--accent);
+  transform: translateY(-1px);
 }
 
 .record-panel {
@@ -363,6 +423,15 @@ body::before {
   display: flex;
   gap: 16px;
   margin-bottom: 16px;
+  justify-content: flex-end;
+}
+
+.action-row .primary-button {
+  flex: 0 0 240px;
+}
+
+.action-row .secondary-button {
+  flex: 0 0 120px;
 }
 
 .primary-button,
@@ -646,7 +715,9 @@ body::before {
 }
 
 @media (max-width: 1080px) {
-  .layout-grid { grid-template-columns: 1fr; }
+  .input-grid { flex-direction: column; align-items: stretch; }
+  .mic-column { flex: none; width: 100%; }
+  .lower-layout { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 768px) {
@@ -654,6 +725,7 @@ body::before {
   .hero-stats { justify-content: center; }
   .compare-card { grid-template-columns: 1fr; }
   .action-row { flex-direction: column; }
+  .action-row .primary-button, .action-row .secondary-button { flex: none; width: 100%; }
 }
 
 /* Login Page Styles */

@@ -4,8 +4,8 @@ const micButton = document.getElementById('micButton');
 const stopButton = document.createElement('button');
 const recordStatus = document.getElementById('recordStatus');
 const recordHint = document.getElementById('recordHint');
-const languageToggle = document.getElementById('languageToggle');
-const languageMode = document.getElementById('languageMode');
+const languageSelect = document.getElementById('languageSelect');
+const translateBtn = document.getElementById('translateBtn');
 const analyzeButton = document.getElementById('analyzeButton');
 const clearButton = document.getElementById('clearButton');
 const confidenceIndicator = document.getElementById('confidenceIndicator');
@@ -26,6 +26,7 @@ const copyButton = document.getElementById('copyButton');
 const shareButton = document.getElementById('shareButton');
 const waveform = document.getElementById('waveform');
 const shareCanvas = document.getElementById('shareCanvas');
+const clearHistoryButton = document.getElementById('clearHistoryButton');
 
 const POSITIVE_WORDS = ['happy','glad','pleased','delighted','cheerful','content','joyful','elated','ecstatic','thrilled','overjoyed','blissful','radiant','beaming','wonderful','fantastic','great','amazing','awesome','brilliant','superb','excellent','love','loved','beautiful','pretty','cute','adorable'];
 const NEGATIVE_WORDS = ['sad','unhappy','sorrowful','depressed','gloomy','miserable','heartbroken','dejected','downcast','melancholy','grief','mourning','crying','weeping','tears','upset','hurt','broken','lost','lonely','alone','abandoned','angry','furious','enraged','irate','livid','outraged','infuriated','fuming','mad','irritated','annoyed','agitated','frustrated','resentful','bitter','hostile','wrathful','seething','afraid','scared','frightened','terrified','anxious','worried','nervous','panicked','horrified','dreadful','apprehensive','uneasy','tense','stressed','overwhelmed','paranoid','disgusted','repulsed','revolted','appalled','nauseated','horrified','offended','disturbed','disappointed','let down','failed','hopeless','discouraged','disheartened','defeated','disillusioned'];
@@ -150,19 +151,49 @@ function saveHistory(record) {
   renderHistory(history);
 }
 
+async function clearHistory() {
+  if (!confirm('Are you sure you want to clear all history?')) return;
+  
+  // Clear Local
+  localStorage.removeItem('sentiVoiceHistory');
+  renderHistory([]);
+  
+  // Clear Backend
+  try {
+    const response = await fetch('/api/clear_history', { method: 'POST' });
+    const json = await response.json();
+    if (json.success) {
+      setStatus('History cleared from everywhere.');
+    }
+  } catch (err) {
+    console.error('Failed to clear backend history');
+  }
+}
+
 function updateUI(result) {
   primaryEmoji.textContent = result.emoji;
   primaryLabel.textContent = result.primary.toUpperCase();
-  primaryText.textContent = `Detected ${result.primary} sentiment with ${result.confidence}% confidence.`;
+  primaryText.textContent = result.primary_text || `Detected ${result.primary} sentiment with ${result.confidence}% confidence.`;
   confidenceValue.textContent = `${result.confidence}%`;
   confidenceIndicator.textContent = `Confidence: ${result.confidence}%`;
   animateRing(result.confidence, result.color);
+  
+  // Dynamic color updates
+  primaryEmoji.style.background = `${result.color}22`; // Add transparency
+  primaryEmoji.style.color = result.color;
+  document.querySelector('.primary-card').style.borderColor = `${result.color}44`;
+  
   nbValue.textContent = `${result.naive_bayes}%`;
   lstmValue.textContent = `${result.lstm}%`;
   combinedValue.textContent = `${result.combined}%`;
   renderBreakdown(result.breakdown);
   loadingState.classList.add('hidden');
   resultsArea.classList.remove('hidden');
+  
+  // Smooth scroll to results
+  setTimeout(() => {
+    resultsArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 100);
 }
 
 async function analyzeText() {
@@ -177,7 +208,7 @@ async function analyzeText() {
     const response = await fetch('/api/analyze', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text })
+      body: JSON.stringify({ text, lang: languageSelect.value })
     });
     const json = await response.json();
     if (response.ok) {
@@ -188,6 +219,35 @@ async function analyzeText() {
     }
   } catch (err) {
     setStatus('Backend unavailable.');
+  }
+}
+
+async function translateText() {
+  const text = inputText.value.trim();
+  if (!text) {
+    setStatus('No text to translate.');
+    return;
+  }
+  const targetLang = languageSelect.value.split('-')[0]; // e.g. 'en' from 'en-US'
+  setStatus(`Translating to ${languageSelect.options[languageSelect.selectedIndex].text}...`);
+  
+  try {
+    const response = await fetch('/api/translate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, target_lang: targetLang })
+    });
+    const json = await response.json();
+    if (json.success) {
+      inputText.value = json.translated_text;
+      updateCharCount();
+      highlightText();
+      setStatus('Translation complete.');
+    } else {
+      setStatus(`Translation failed: ${json.error || 'Unknown error'}`);
+    }
+  } catch (err) {
+    setStatus('Translation service unavailable.');
   }
 }
 
@@ -241,7 +301,7 @@ function initSpeech() {
     return;
   }
   recognition = new SpeechRecognition();
-  recognition.lang = currentLang;
+  recognition.lang = languageSelect.value;
   recognition.interimResults = true;
   recognition.maxAlternatives = 1;
   recognition.continuous = false;
@@ -291,10 +351,9 @@ inputText.addEventListener('input', () => {
   highlightText();
 });
 
-languageToggle.addEventListener('change', () => {
-  currentLang = languageToggle.checked ? 'hi-IN' : 'en-US';
-  languageMode.textContent = languageToggle.checked ? 'Hinglish' : 'EN';
-  setStatus(`Language set to ${languageMode.textContent}`);
+languageSelect.addEventListener('change', () => {
+  if (recognition) recognition.lang = languageSelect.value;
+  setStatus(`Target language set to ${languageSelect.options[languageSelect.selectedIndex].text}`);
 });
 
 micButton.addEventListener('click', () => {
@@ -306,6 +365,7 @@ micButton.addEventListener('click', () => {
 });
 
 analyzeButton.addEventListener('click', analyzeText);
+translateBtn.addEventListener('click', translateText);
 clearButton.addEventListener('click', () => {
   inputText.value = '';
   updateCharCount();
@@ -316,14 +376,30 @@ clearButton.addEventListener('click', () => {
 });
 copyButton.addEventListener('click', copyResult);
 shareButton.addEventListener('click', shareImage);
+clearHistoryButton.addEventListener('click', clearHistory);
 
 updateCharCount();
 highlightText();
 initSpeech();
 renderHistory(getHistory());
 
-window.addEventListener('load', () => {
+window.addEventListener('load', async () => {
+  // Try to sync from backend
+  try {
+    const response = await fetch('/api/history');
+    const backendHistory = await response.json();
+    if (backendHistory && backendHistory.length > 0) {
+      // Merge/Overrule local with backend
+      localStorage.setItem('sentiVoiceHistory', JSON.stringify(backendHistory));
+      renderHistory(backendHistory);
+      return;
+    }
+  } catch (err) {
+    console.warn('Backend history sync failed, using local.');
+  }
+  
   if (!getHistory().length) renderHistory([]);
+  else renderHistory(getHistory());
 });
 
 inputText.addEventListener('scroll', () => {
