@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script>document.documentElement.setAttribute('data-theme', localStorage.getItem('sentivoice-theme') || 'dark');</script>
   <meta name="description" content="SentiVoice AI - Premium Sentiment Analysis for English and Hinglish voice and text." />
   <meta name="theme-color" content="#050505" />
   <title>SentiVoice AI | Premium Sentiment Intelligence</title>
@@ -22,7 +23,50 @@
         <p class="subtitle">Dual-Model Sentiment Intelligence</p>
       </div>
       <div class="hero-actions">
-        <a href="/logout" class="secondary-button logout-btn">Logout</a>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <!-- Dark/Light Mode Toggle Switch -->
+          <div id="themeToggleBtn" title="Toggle Dark / Light Mode" style="
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            padding: 6px 12px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            user-select: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: inherit;
+            backdrop-filter: blur(8px);
+            transition: background 0.3s;
+          ">
+            <span style="font-size:1rem;">🌙</span>
+            <div id="toggleTrack" style="
+              position: relative;
+              width: 44px;
+              height: 24px;
+              border-radius: 999px;
+              background: #6366F1;
+              transition: background 0.3s;
+              flex-shrink: 0;
+            ">
+              <div id="toggleThumb" style="
+                position: absolute;
+                top: 3px;
+                left: 3px;
+                width: 18px;
+                height: 18px;
+                border-radius: 50%;
+                background: white;
+                transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+                box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+              "></div>
+            </div>
+            <span style="font-size:1rem;">☀️</span>
+          </div>
+          <a href="/logout" class="secondary-button logout-btn">Logout</a>
+        </div>
         <div class="hero-stats">
           <div class="stat">NB: <strong>87%</strong></div>
           <div class="stat">LSTM: <strong>91%</strong></div>
@@ -130,6 +174,13 @@
               </div>
               <div class="ring-card">
                 <svg viewBox="0 0 120 120">
+                  <defs>
+                    <linearGradient id="gradientRing" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#00f3ff" />
+                      <stop offset="50%" stop-color="#bc13fe" />
+                      <stop offset="100%" stop-color="#ff00ea" />
+                    </linearGradient>
+                  </defs>
                   <circle class="ring-bg" cx="60" cy="60" r="52"></circle>
                   <circle class="ring-fill" id="ringFill" cx="60" cy="60" r="52"></circle>
                 </svg>
@@ -187,5 +238,46 @@
 
   <canvas id="shareCanvas" width="1000" height="700" hidden></canvas>
   <script src="/static/script.js"></script>
+  <script>
+    // === THEME TOGGLE LOGIC ===
+    (function() {
+      const saved = localStorage.getItem('sentivoice-theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', saved);
+    })();
+
+    function syncToggleUI(theme) {
+      const thumb = document.getElementById('toggleThumb');
+      const track = document.getElementById('toggleTrack');
+      const btn   = document.getElementById('themeToggleBtn');
+      if (!thumb || !track) return;
+      if (theme === 'light') {
+        thumb.style.transform = 'translateX(20px)';
+        track.style.background = '#4F46E5';
+        btn.style.background = 'rgba(0,0,0,0.06)';
+        btn.style.borderColor = 'rgba(0,0,0,0.12)';
+        btn.style.color = '#0F172A';
+      } else {
+        thumb.style.transform = 'translateX(0)';
+        track.style.background = '#6366F1';
+        btn.style.background = 'rgba(255,255,255,0.1)';
+        btn.style.borderColor = 'rgba(255,255,255,0.2)';
+        btn.style.color = '';
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      syncToggleUI(document.documentElement.getAttribute('data-theme') || 'dark');
+      const themeBtn = document.getElementById('themeToggleBtn');
+      if (themeBtn) {
+        themeBtn.addEventListener('click', () => {
+          const current = document.documentElement.getAttribute('data-theme') || 'dark';
+          const next = current === 'dark' ? 'light' : 'dark';
+          document.documentElement.setAttribute('data-theme', next);
+          localStorage.setItem('sentivoice-theme', next);
+          syncToggleUI(next);
+        });
+      }
+    });
+  </script>
 </body>
 </html>
